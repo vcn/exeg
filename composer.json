@@ -1,0 +1,26 @@
+{
+  "name": "vcn/exeg",
+  "description": "Library providing a shell command abstraction",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Gerrit Drost",
+      "email": "gdrost@vcn.nl"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Vcn\\Exeg\\": "src/"
+    }
+  },
+  "require": {
+    "php": ">=7.1.0"
+  },
+  "require-dev": {
+    "symfony/process": "^4.2"
+  },
+  "suggest": {
+    "symfony/process": "symfony/process is required to use the classes in the Vcn\\Exeg\\Symfony\\-namespace"
+  }
+}

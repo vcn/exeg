@@ -82,7 +82,7 @@ final class Command
     public function withArgs(array $args, bool $append = false): self
     {
         if ($append) {
-            $args = $this->args + $args;
+            $args = array_merge($this->args, $args);
         }
 
         return new self($this->cmd, $args, $this->env, $this->workDir);

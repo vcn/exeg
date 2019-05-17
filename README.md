@@ -64,6 +64,24 @@ $exitCode = $process->run($passthroughCallback);
 echo "Command exited with code {$exitCode}" . PHP_EOL;
 ```
 
+# Working directories
+
+When working with paths relative to a directory, `Vcn\Exeg\WorkDir` makes life a little easier.
+
+```php
+<?php
+
+use Vcn\Exeg\WorkDir;
+
+$workDir = new WorkDir('/etc');
+
+// Displays /etc/hosts
+$displayHostsCommand = $workDir->command('cat', ['hosts']);
+
+// Displays /etc/hostname
+$displayHostnameCommand = $workDir->command('cat', ['hostname']);
+```
+
 # Combining commands
 
 Sometimes commands take commands as argument. You can use `Shell::render()` to generate the command argument.

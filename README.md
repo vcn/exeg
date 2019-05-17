@@ -64,6 +64,24 @@ $exitCode = $process->run($passthroughCallback);
 echo "Command exited with code {$exitCode}" . PHP_EOL;
 ```
 
+# Working directories
+
+When working with paths relative to a directory, `Vcn\Exeg\WorkDir` makes life a little easier.
+
+```php
+<?php
+
+use Vcn\Exeg\WorkDir;
+
+$workDir = new WorkDir('/etc');
+
+// Displays /etc/hosts
+$displayHostsCommand = $workDir->command('cat', ['hosts']);
+
+// Displays /etc/hostname
+$displayHostnameCommand = $workDir->command('cat', ['hostname']);
+```
+
 # Combining commands
 
 Sometimes commands take commands as argument. You can use `Shell::render()` to generate the command argument.
@@ -79,7 +97,73 @@ use Vcn\Exeg\Symfony\ProcessBuffer;
 $exegSymfony = new ExegSymfony();
 
 $catHostsCommand = new Command('cat', ['/etc/hosts']);
-$sshCommand      = new Command('ssh', ['example.test', Shell::render($catHostsCommand)]);
+$bashCommand     = new Command('bash', ['-c', Shell::render($catHostsCommand)]);
+
+$exegSymfony->run($bashCommand, ProcessBuffer::passthrough());
+```
+
+# SSH
+
+The class `Vcn\Exeg\Command\Ssh\Server` implements an abstraction of an SSH server.
+
+```php
+<?php
+
+use Vcn\Exeg\Command;
+use Vcn\Exeg\Command\Ssh;
+use Vcn\Exeg\Symfony\ExegSymfony;
+use Vcn\Exeg\Symfony\ProcessBuffer;
+
+$exegSymfony = new ExegSymfony();
+
+$sshServer = new Ssh\Server('example.test'); 
+
+$catHostsCommand = new Command('cat', ['/etc/hosts']);
+$sshCommand      = $sshServer->adopt($catHostsCommand);
 
 $exegSymfony->run($sshCommand, ProcessBuffer::passthrough());
+```
+
+# rsync
+
+The class `Vcn\Exeg\Command\Rsync\Factory` creates rsync commands.
+
+```php
+<?php
+
+use Vcn\Exeg\Command\Rsync;
+use Vcn\Exeg\Symfony\ExegSymfony;
+use Vcn\Exeg\Symfony\ProcessBuffer;
+
+$exegSymfony = new ExegSymfony();
+
+$srcDir       = '/home/user/src/';
+$destDir      = '/home/user/dest/';
+$rsyncParams  = Rsync\Params::create()->withArchive();
+$rsyncCommand = Rsync\Factory::local($srcDir, $destDir, $rsyncParams);
+
+$exegSymfony->run($rsyncCommand, ProcessBuffer::passthrough());
+``` 
+
+## Rsync + SSH
+
+The factory also contains methods to rsync from/to SSH servers.
+
+```php
+<?php
+
+use Vcn\Exeg\Command\Rsync;
+use Vcn\Exeg\Command\Ssh;
+use Vcn\Exeg\Symfony\ExegSymfony;
+use Vcn\Exeg\Symfony\ProcessBuffer;
+
+$exegSymfony = new ExegSymfony();
+
+$srcDir       = '/home/user/src/';
+$destServer   = new Ssh\Server('example.test');
+$destDir      = '/home/user/dest/';
+$rsyncParams  = Rsync\Params::create()->withArchive();
+$rsyncCommand = Rsync\Factory::localToSsh($srcDir, $destServer, $destDir, $rsyncParams);
+
+$exegSymfony->run($rsyncCommand, ProcessBuffer::passthrough());
 ```

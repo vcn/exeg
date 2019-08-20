@@ -8,20 +8,36 @@ use Vcn\Exeg\Command;
 
 class ExegSymfony
 {
+    /**
+     * @var null|callable
+     */
     private $defaultCallback = null;
 
-    public function __construct(?callable $defaultCallback = null)
+    /**
+     * @var null|int
+     */
+    private $defaultTimeout = null;
+
+    public function __construct(?callable $defaultCallback = null, ?int $defaultTimeout = null)
     {
         if (!class_exists(Process::class)) {
             throw new RuntimeException(sprintf("Please install symfony/process to make use of %s", self::class));
         }
 
         $this->defaultCallback = $defaultCallback;
+        $this->defaultTimeout  = $defaultTimeout;
     }
 
     public function setDefaultCallback(?callable $callback): self
     {
         $this->defaultCallback = $callback;
+
+        return $this;
+    }
+
+    public function setDefaultTimeout(?int $defaultTimeout): self
+    {
+        $this->defaultTimeout = $defaultTimeout;
 
         return $this;
     }
@@ -44,6 +60,10 @@ class ExegSymfony
 
         if ($env !== null) {
             $process->setEnv($env);
+        }
+
+        if ($this->defaultTimeout !== null) {
+            $process->setTimeout($this->defaultTimeout);
         }
 
         return $process;

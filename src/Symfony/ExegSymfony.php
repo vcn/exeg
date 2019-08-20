@@ -18,6 +18,12 @@ class ExegSymfony
      */
     private $defaultTimeout = null;
 
+    /**
+     * ExegSymfony constructor.
+     *
+     * @param null|callable $defaultCallback
+     * @param null|int      $defaultTimeout   Timeout in seconds. Null to use Symfony's default, 0 to disable timeouts.
+     */
     public function __construct(?callable $defaultCallback = null, ?int $defaultTimeout = null)
     {
         if (!class_exists(Process::class)) {
@@ -35,6 +41,11 @@ class ExegSymfony
         return $this;
     }
 
+    /**
+     * @param null|int $defaultTimeout Timeout in seconds. Null to use Symfony's default, 0 to disable timeouts.
+     *
+     * @return ExegSymfony
+     */
     public function setDefaultTimeout(?int $defaultTimeout): self
     {
         $this->defaultTimeout = $defaultTimeout;

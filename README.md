@@ -102,6 +102,39 @@ $bashCommand     = new Command('bash', ['-c', Shell::render($catHostsCommand)]);
 $exegSymfony->run($bashCommand, ProcessBuffer::passthrough());
 ```
 
+# Pipelines
+
+You can construct unix pipelines using a utility-class:
+
+```php
+<?php
+
+use Vcn\Exeg\Command;
+use Vcn\Exeg\Shell;
+
+$findCmd = new Command(
+    'find', [
+              // find all files in /home/johndoe ending in *.jpg or *.jpeg
+              '/home/johndoe', '-xdev', '-type', 'f', '(', '-iname', '*.jpg', '-o', '-iname', '*.jpeg', ')',
+              // use magick to output [filename] [width px] [height px]
+              '-exec', 'magick', 'identify', '-format', '%i %w %h\n', '{}', ';',
+          ]
+);
+
+// Use awk to change output to [w*h] [filename]
+$awkCmd = new Command('awk', ['-F', ' ', '{ print $2*$3 " " $1; }']);
+
+// Use numeric sort to the files by number of pixels
+$sortCmd = new Command('sort', ['-n']);
+
+$cmd = Shell\Pipeline
+    ::first($findCmd)
+    ->then($awkCmd)
+    ->last($sortCmd);
+
+echo "{$cmd->render()}\n";
+```
+
 # SSH
 
 The class `Vcn\Exeg\Command\Ssh\Server` implements an abstraction of an SSH server.

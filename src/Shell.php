@@ -4,13 +4,14 @@ namespace Vcn\Exeg;
 
 class Shell
 {
-    public static function render(
-        Command $command,
-        ?string $stdinFile = null,
-        ?string $stdoutFile = null,
-        ?string $stderrFile = null
-    ): string {
-        $shellCommand = '';
+    public static function renderShellCommand(Shell\Command $shellCommand): string
+    {
+        $renderedCommand = '';
+
+        $command = $shellCommand->getCommand();
+        $stdin   = $shellCommand->getStdin();
+        $stdout  = $shellCommand->getStdout();
+        $stderr  = $shellCommand->getStderr();
 
         $cmd     = $command->getCmd();
         $args    = $command->getArgs();
@@ -18,31 +19,48 @@ class Shell
         $env     = $command->getEnv();
 
         if ($workDir !== null) {
-            $shellCommand .= sprintf('cd %s && ', escapeshellarg($workDir));
+            $renderedCommand .= sprintf('cd %s && ', escapeshellarg($workDir));
         }
 
         foreach (($env ?? []) as $name => $value) {
-            $shellCommand .= sprintf("%s=%s ", $name, escapeshellarg($value));
+            $renderedCommand .= sprintf("%s=%s ", $name, escapeshellarg($value));
         }
 
-        // The actual command
-        $escapedCmd  = escapeshellcmd($cmd);
-        $escapedArgs = array_map('escapeshellarg', $args);
+        $renderedCommand .= escapeshellcmd($cmd);
 
-        $shellCommand .= sprintf('%s %s', $escapedCmd, implode(' ', $escapedArgs));
-
-        if ($stdinFile !== null) {
-            $shellCommand .= sprintf(' < %s', escapeshellarg($stdinFile));
+        if (!empty($args)) {
+            $renderedCommand .= ' ' . implode(' ', array_map('escapeshellarg', $args));
         }
 
-        if ($stdoutFile !== null) {
-            $shellCommand .= sprintf(' 1> %s', escapeshellarg($stdoutFile));
+        if ($stdin !== null) {
+            $renderedCommand .= sprintf(' < %s', escapeshellarg($stdin));
         }
 
-        if ($stderrFile !== null) {
-            $shellCommand .= sprintf(' 2> %s', escapeshellarg($stderrFile));
+        if ($stdout !== null) {
+            $renderedCommand .= sprintf(' 1> %s', escapeshellarg($stdout));
         }
 
-        return $shellCommand;
+        if ($stderr !== null) {
+            $renderedCommand .= sprintf(' 2> %s', escapeshellarg($stderr));
+        }
+
+        return $renderedCommand;
+    }
+
+    /**
+     * @param Command     $command
+     * @param null|string $stdinFile
+     * @param null|string $stdoutFile
+     * @param null|string $stderrFile
+     *
+     * @return string
+     */
+    public static function render(
+        Command $command,
+        ?string $stdinFile = null,
+        ?string $stdoutFile = null,
+        ?string $stderrFile = null
+    ): string {
+        return self::renderShellCommand(new Shell\Command($command, $stdinFile, $stdoutFile, $stderrFile));
     }
 }
